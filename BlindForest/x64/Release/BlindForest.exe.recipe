@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>C:\Users\PC\source\repos\BlindForest\BlindForestProject\x64\Release\BlindForest.exe</FullPath>
+      <FullPath>C:\Users\PC\source\repos\BlindForest\x64\Release\BlindForest.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
