@@ -1,0 +1,59 @@
+# Ignore Visual Studio temporary files
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Ignore build outputs
+x64/
+x86/
+Release/
+Debug/
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ipdb
+*.iobj
+*.log
+*.tlog
+*.idb
+*.ilk
+
+# Ignore CMake generated files (if you use CMake later)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Ignore compiled shaders (optional)
+*.spv
+
+# Ignore images and temp textures (optional)
+*.png
+*.jpg
+*.jpeg
+*.bmp
+*.tga
+*.psd
+*.tmp
+
+# Ignore other backup files
+*.bak
+*.tmp
+Thumbs.db
+Desktop.ini
+
+# Optional: Ignore OS generated files
+.DS_Store
+ehthumbs.db
+Icon?
+
+
+<<<<<<< HEAD
+*.vs
+=======
+*.vs
+>>>>>>> a813741762bd857199c7532cc0f383d8476cb953
