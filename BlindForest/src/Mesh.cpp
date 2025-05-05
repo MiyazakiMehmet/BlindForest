@@ -5,9 +5,11 @@ Mesh::Mesh()
 	VAO = 0;
 	VBO = 0;
 	IBO = 0;
+	indexCount = 0;
 }
 
-void Mesh::CompileMesh(float vertices, float indices, unsigned int numOfIndices)
+//Pointer points the address of array instead of just first element
+void Mesh::CompileMesh(float* vertices, unsigned int* indices, unsigned int numOfIndices)
 {
 	indexCount = numOfIndices;
 
@@ -20,8 +22,8 @@ void Mesh::CompileMesh(float vertices, float indices, unsigned int numOfIndices)
 	glGenBuffers(1, &IBO); //Generates an id for IBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); //From now on only element array buffer implemantaion and functions stored in VBO
 
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), &indices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
@@ -32,9 +34,9 @@ void Mesh::CompileMesh(float vertices, float indices, unsigned int numOfIndices)
 
 }
 
-void Mesh::CompileMesh(std::vector<float> vertices, std::vector<unsigned int> indices)
+void Mesh::CompileMesh(std::vector<float>* vertices, std::vector<unsigned int>* indices)
 {
-	indexCount = indices.size();
+	indexCount = indices->size();
 
 	glGenVertexArrays(1, &VAO); //Generates an id for VAO
 	glBindVertexArray(VAO); //From now on all implemantaion and functions affect on VAO
@@ -45,8 +47,8 @@ void Mesh::CompileMesh(std::vector<float> vertices, std::vector<unsigned int> in
 	glGenBuffers(1, &IBO); //Generates an id for IBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); //From now on only element array buffer implemantaion and functions affect on VBO
 
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices->size() * sizeof(float), vertices->data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices->size() * sizeof(unsigned int), indices->data(), GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	glEnableVertexAttribArray(0);
@@ -56,10 +58,10 @@ void Mesh::CompileMesh(std::vector<float> vertices, std::vector<unsigned int> in
 	glBindVertexArray(0);
 }
 
-void Mesh::UseMesh()
+void Mesh::RenderMesh()
 {
 	glBindVertexArray(VAO); //This VAO holds all VBO and IBO datas
-	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_BYTE, 0);
+	glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);
 }
 

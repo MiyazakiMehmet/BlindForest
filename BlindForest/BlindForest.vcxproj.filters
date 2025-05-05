@@ -39,4 +39,8 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\shaders\Plane.vert" />
+    <None Include="src\shaders\Plane.frag" />
+  </ItemGroup>
 </Project>
