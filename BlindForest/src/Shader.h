@@ -23,7 +23,7 @@ public:
 	std::string ReadFile(std::string filePath);
 	void CompileShader(std::string vertexShaderFile, std::string fragmentShaderFile);
 	void UseShader();
-
+	unsigned int GetShaderID() { return shaderID; }
 	//Getters for uniforms
 	unsigned int GetModelLoc();
 	unsigned int GetViewLoc();
