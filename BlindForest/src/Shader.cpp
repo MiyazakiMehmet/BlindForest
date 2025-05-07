@@ -78,11 +78,31 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 	//Delete shaders, since its linked to shader program
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
+
+	//Setting uniform locations
+	modelLoc = glGetUniformLocation(shaderID, "model");
+	viewLoc = glGetUniformLocation(shaderID, "view");
+	projectionLoc = glGetUniformLocation(shaderID, "projection");
 }
 
 void Shader::UseShader()
 {
 	glUseProgram(shaderID);
+}
+
+unsigned int Shader::GetModelLoc()
+{
+	return modelLoc;
+}
+
+unsigned int Shader::GetViewLoc()
+{
+	return viewLoc;
+}
+
+unsigned int Shader::GetProjectionLoc()
+{
+	return projectionLoc;
 }
 
 Shader::~Shader()
