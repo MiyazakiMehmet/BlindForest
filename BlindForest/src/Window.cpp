@@ -4,12 +4,19 @@ Window::Window()
 {
 	screenWidth = 600;
 	screenHeight = 800;
+	currentFrame = 0.0f;
+	lastFrame = 0.0f;
+	deltaTime = 0.0f;
 }
 
-Window::Window(int width, int height)
+Window::Window(int width, int height, float camSpeed)
 {
 	screenWidth = width;
 	screenHeight = height;
+	cameraSpeed = camSpeed;
+	currentFrame = 0.0f;
+	lastFrame = 0.0f;
+	deltaTime = 0.0f;
 }
 
 int Window::Initialize()
@@ -49,6 +56,22 @@ int Window::Initialize()
 	}
 
 	glEnable(GL_DEPTH_TEST);
+}
+
+void Window::HandleKeys(glm::vec3& cameraPos, glm::vec3& cameraFront, glm::vec3& cameraRight)
+{
+	currentFrame = glfwGetTime();
+	deltaTime = currentFrame - lastFrame;
+	lastFrame = currentFrame;
+
+	if (glfwGetKey(mainWindow, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += deltaTime * cameraSpeed * cameraFront;
+	if (glfwGetKey(mainWindow, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= deltaTime * cameraSpeed * cameraFront;
+	if (glfwGetKey(mainWindow, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= deltaTime * cameraRight * cameraSpeed;
+	if (glfwGetKey(mainWindow, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += deltaTime * cameraRight * cameraSpeed;
 }
 
 Window::~Window()

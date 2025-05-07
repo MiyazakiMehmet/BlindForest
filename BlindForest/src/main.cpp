@@ -1,10 +1,14 @@
 #include <GL/glew.h>
+#include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
+#include <gtc/type_ptr.hpp>
 
 #include "Window.h"
 #include "Mesh.h"
 #include "Shader.h"
 
 #include <iostream>
+#include <vector>
 
 int WIDTH = 800, HEIGHT = 1000;
 
@@ -12,9 +16,55 @@ Window mainWindow;
 Mesh planeMesh;
 Shader planeShader;
 
-float dirtPlaneVertices[];
+std::vector<float> planeVertices;
+std::vector<unsigned int> planeIndices;
+int gridSize = 50;
+float size = 10.0f;
+
+glm::mat4 model;
+glm::mat4 view;
+glm::mat4 projection;
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //Where camera lookss
+glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+glm::vec3 cameraRight, cameraUp;
+float cameraSpeed = 2.5f;
+
 
 void CreateObjects() {
+	//Create indices for plane
+	for (int y = 0; y <= gridSize; y++) {
+		for (int x = 0; x <= gridSize; x++) {
+			float xPos = ((float)x / gridSize) * size - size / 2.0f;
+			float zPos = 0.0f;
+			float yPos = ((float)y / gridSize) * size - size / 2.0f;
+
+			planeVertices.push_back(xPos);
+			planeVertices.push_back(yPos);
+			planeVertices.push_back(zPos);
+		}
+	}
+
+	//Create indices for plane
+	for (int y = 0; y < gridSize; y++) {
+		for (int x = 0; x < gridSize; x++) {
+			unsigned int i0 = y * (gridSize + 1) + x;
+			unsigned int i1 = i0 + 1;
+			unsigned int i2 = i0 + (gridSize + 1);
+			unsigned int i3 = i2 + 1;
+
+			//First Triangle
+			planeIndices.push_back(i0);
+			planeIndices.push_back(i2);
+			planeIndices.push_back(i1);
+			//Second Triangle
+			planeIndices.push_back(i2);
+			planeIndices.push_back(i3);
+			planeIndices.push_back(i1);
+		}
+	}
+
 	float planeVertices[] = {
 		-0.5f, -0.5f, 0.0f,
 		-0.5f,  0.5f, 0.0f,
@@ -27,6 +77,8 @@ void CreateObjects() {
 		2, 3, 0
 	};
 
+
+	//planeMesh.CompileMesh(planeVertices, planeIndices);
 	planeMesh.CompileMesh(planeVertices, planeIndices, 6);
 }
 
@@ -35,7 +87,32 @@ void CreateShaders() {
 	planeShader.CompileShader("src/shaders/Plane.vert", "src/shaders/Plane.frag");
 }
 
+void SetTransformations() {
+	//Plane transformation
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(0.0, 0.0, 0.0));
+	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+	//model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
+
+
+
+	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
+	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
+
+	view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
+	projection = glm::perspective(glm::radians(45.0f), (float)1400 / (float)1000, 0.1f, 100.0f);
+
+	glUniformMatrix4fv(planeShader.GetModelLoc(), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(planeShader.GetViewLoc(), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(planeShader.GetProjectionLoc(), 1, GL_FALSE, glm::value_ptr(projection));
+
+}
+
 void RenderScene() {
+	
+	SetTransformations();
+
 	planeMesh.RenderMesh();
 }
 
@@ -53,7 +130,7 @@ void RenderPass() {
 
 int main() {
 
-	mainWindow = Window(WIDTH, HEIGHT);
+	mainWindow = Window(WIDTH, HEIGHT, cameraSpeed);
 	mainWindow.Initialize();
 
 	CreateObjects();
@@ -63,7 +140,11 @@ int main() {
 
 	while (!mainWindow.GetShouldClose()) {
 
+		mainWindow.HandleKeys(cameraPos, cameraFront, cameraRight);
+		
 		RenderPass();
+
+
 		
 		mainWindow.SwapBuffers();
 		glfwPollEvents();
