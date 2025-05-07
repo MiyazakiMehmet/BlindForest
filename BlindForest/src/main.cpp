@@ -20,7 +20,7 @@ Shader planeShader;
 std::vector<float> planeVertices;
 std::vector<unsigned int> planeIndices;
 int gridSize = 50;
-float size = 10.0f;
+float size = 100.0f;
 
 glm::mat4 model;
 glm::mat4 view;
