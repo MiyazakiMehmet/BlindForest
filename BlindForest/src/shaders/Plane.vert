@@ -12,5 +12,5 @@ void main(){
 	vec3 pos = aPos;
 
 	gl_Position = projection * view * model * vec4(pos, 1.0);
-	texCoords = pos.xz;
+	texCoords = pos.xz * 0.4;
 }
