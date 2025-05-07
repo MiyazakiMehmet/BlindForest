@@ -13,7 +13,7 @@ public:
 	Mesh();
 
 	void CompileMesh(float* vertices, unsigned int* indices, unsigned int numOfIndices);
-	void CompileMesh(std::vector<float> vertices, std::vector<unsigned int> indices);
+	void CompileMesh(std::vector<float>& vertices, std::vector<unsigned int>& indices);
 	void RenderMesh();
 
 	~Mesh();

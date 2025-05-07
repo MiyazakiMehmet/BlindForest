@@ -25,20 +25,63 @@ glm::mat4 model;
 glm::mat4 view;
 glm::mat4 projection;
 
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraPos = glm::vec3(0.0f, 3.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //Where camera lookss
 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 cameraRight, cameraUp;
 float cameraSpeed = 2.5f;
 
+bool firstMouse = true;
+double previousX = WIDTH / 2;
+double previousY = HEIGHT / 2;
+float yaw = -90.0f;
+float pitch = 0;
+
+
+void HandleMouse(GLFWwindow* window, double xPos, double yPos) {
+	if (firstMouse) {
+		previousX = xPos;
+		previousY = yPos;
+		firstMouse = false;
+	}
+
+	float xOffset = xPos - previousX;
+	float yOffset = previousY - yPos;
+
+	previousX = xPos;
+	previousY = yPos;
+
+	float sensivity = 0.1f;
+	xOffset *= sensivity;
+	yOffset *= sensivity;
+
+	yaw += xOffset;
+	pitch += yOffset;
+
+	if (pitch > 89.0f) {
+		pitch = 89.0f;
+	}
+	else if (pitch < -89.0f) {
+		pitch = -89.0f;
+	}
+
+	glm::vec3 direction;
+	direction.x = glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+	direction.y = glm::sin(glm::radians(pitch));
+	direction.z = glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch));
+
+	cameraFront = glm::normalize(direction);
+	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
+	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
+}
 
 void CreateObjects() {
 	//Create indices for plane
 	for (int y = 0; y <= gridSize; y++) {
 		for (int x = 0; x <= gridSize; x++) {
 			float xPos = ((float)x / gridSize) * size - size / 2.0f;
-			float zPos = 0.0f;
-			float yPos = ((float)y / gridSize) * size - size / 2.0f;
+			float yPos = 0.0f;
+			float zPos = ((float)y / gridSize) * size - size / 2.0f;
 
 			planeVertices.push_back(xPos);
 			planeVertices.push_back(yPos);
@@ -65,21 +108,7 @@ void CreateObjects() {
 		}
 	}
 
-	float planeVertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		-0.5f,  0.5f, 0.0f,
-		 0.5f,  0.5f, 0.0f,
-		 0.5f, -0.5f, 0.0f
-	};
-
-	unsigned int planeIndices[] = {
-		0, 1, 2,
-		2, 3, 0
-	};
-
-
-	//planeMesh.CompileMesh(planeVertices, planeIndices);
-	planeMesh.CompileMesh(planeVertices, planeIndices, 6);
+	planeMesh.CompileMesh(planeVertices, planeIndices);
 }
 
 void CreateShaders() {
@@ -93,8 +122,6 @@ void SetTransformations() {
 	model = glm::translate(model, glm::vec3(0.0, 0.0, 0.0));
 	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(2.0f, 2.0f, 2.0f));
 	//model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
-
-
 
 	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
 	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
@@ -118,9 +145,9 @@ void RenderScene() {
 
 void RenderPass() {
 	glClearColor(0.4f, 0.6f, 0.4f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 
 	planeShader.UseShader();
@@ -133,10 +160,13 @@ int main() {
 	mainWindow = Window(WIDTH, HEIGHT, cameraSpeed);
 	mainWindow.Initialize();
 
+	//Handling yaw/pitch
+	glfwSetInputMode(mainWindow.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(mainWindow.GetWindow(), HandleMouse);
+
 	CreateObjects();
 
 	CreateShaders();
-
 
 	while (!mainWindow.GetShouldClose()) {
 

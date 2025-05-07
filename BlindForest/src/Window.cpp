@@ -46,7 +46,7 @@ int Window::Initialize()
 	}
 
 	glfwMakeContextCurrent(mainWindow);
-	glViewport(0, 0, screenWidth, screenHeight);
+	glViewport(0, 0, screenHeight, screenWidth);
 
 	// Initialize GLEW
 	glewExperimental = GL_TRUE; // Load OpenGL functions from GPU to use it in c++
