@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "Mesh.h"
 #include "Shader.h"
+#include "PerlinNoise2D.h"
 
 #include <iostream>
 #include <vector>
@@ -37,6 +38,36 @@ double previousY = HEIGHT / 2;
 float yaw = -90.0f;
 float pitch = 0;
 
+unsigned int perlinTex;
+int texSize;
+
+void PerlinTexture() {
+	
+	texSize = 512;
+	
+	unsigned char* data = new unsigned char[texSize * texSize];
+
+	for (int y = 0; y < texSize; ++y) {
+		for (int x = 0; x < texSize; ++x) {
+			float fx = (float)x / texSize * 10.0f;  // scale
+			float fy = (float)y / texSize * 10.0f;
+
+			float value = perlin(fx, fy); // -1 to 1
+			value = (value + 1.0f) * 0.5f; // Normalize to 0..1
+
+			data[y * texSize + x] = (unsigned char)(value * 255);
+		}
+	}
+
+	glGenTextures(1, &perlinTex);
+	glBindTexture(GL_TEXTURE_2D, perlinTex);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, texSize, texSize, 0, GL_RED, GL_UNSIGNED_BYTE, data);
+	delete[] data;
+}
 
 void HandleMouse(GLFWwindow* window, double xPos, double yPos) {
 	if (firstMouse) {
@@ -138,13 +169,17 @@ void SetTransformations() {
 
 void RenderScene() {
 	
-	SetTransformations();
 
+	SetTransformations();
 	planeMesh.RenderMesh();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_IMAGE_2D, perlinTex);
+	glUniform1i(glGetUniformLocation(planeShader.GetShaderID(), "perlinNoise"), 0);
 }
 
 void RenderPass() {
-	glClearColor(0.4f, 0.6f, 0.4f, 1.0f);
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
@@ -167,6 +202,9 @@ int main() {
 	CreateObjects();
 
 	CreateShaders();
+
+	PerlinTexture();
+
 
 	while (!mainWindow.GetShouldClose()) {
 
