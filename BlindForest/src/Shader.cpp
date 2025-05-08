@@ -83,11 +83,20 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 	modelLoc = glGetUniformLocation(shaderID, "model");
 	viewLoc = glGetUniformLocation(shaderID, "view");
 	projectionLoc = glGetUniformLocation(shaderID, "projection");
+	lightColorLoc = glGetUniformLocation(shaderID, "directionalLight.base.lightColor");
+	ambientIntensityLoc = glGetUniformLocation(shaderID, "directionalLight.base.ambientIntensity");
+	diffuseIntensityLoc = glGetUniformLocation(shaderID, "directionalLight.base.diffuseIntensity");
+	lightDirLoc = glGetUniformLocation(shaderID, "directionalLight.lightDirection");
 }
 
 void Shader::UseShader()
 {
 	glUseProgram(shaderID);
+}
+
+void Shader::SetDirectionalLight(DirectionalLight directionalLight)
+{
+	directionalLight.UseLight(lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc);
 }
 
 unsigned int Shader::GetModelLoc()
@@ -103,6 +112,26 @@ unsigned int Shader::GetViewLoc()
 unsigned int Shader::GetProjectionLoc()
 {
 	return projectionLoc;
+}
+
+unsigned int Shader::GetLightColorLoc()
+{
+	return lightColorLoc;
+}
+
+unsigned int Shader::GetAmbIntensityLoc()
+{
+	return ambientIntensityLoc;
+}
+
+unsigned int Shader::GetDifIntensityLoc()
+{
+	return diffuseIntensityLoc;
+}
+
+unsigned int Shader::GetLightDirLoc()
+{
+	return lightDirLoc;
 }
 
 Shader::~Shader()

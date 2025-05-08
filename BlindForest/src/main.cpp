@@ -7,6 +7,7 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "PerlinNoise2D.h"
+#include "DirectionalLight.h"
 
 #include <iostream>
 #include <vector>
@@ -16,11 +17,16 @@ int WIDTH = 800, HEIGHT = 1000;
 Window mainWindow;
 Mesh planeMesh;
 Shader planeShader;
+DirectionalLight directionalLight;
+Mesh treeMesh;
+Shader treeShader;
+
 
 std::vector<float> planeVertices;
 std::vector<unsigned int> planeIndices;
 int gridSize = 50;
 float size = 100.0f;
+
 
 glm::mat4 model;
 glm::mat4 view;
@@ -40,6 +46,12 @@ float pitch = 0;
 
 unsigned int perlinTex;
 int texSize;
+
+glm::vec3 lightColor;
+float ambientIntensity;
+float diffuseIntensity;
+glm::vec3 lightDirection;
+
 
 void PerlinTexture() {
 	
@@ -105,7 +117,7 @@ void HandleMouse(GLFWwindow* window, double xPos, double yPos) {
 	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
 	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 }
-
+//Will be set just once
 void CreateObjects() {
 	//Create indices for plane
 	for (int y = 0; y <= gridSize; y++) {
@@ -140,18 +152,80 @@ void CreateObjects() {
 	}
 
 	planeMesh.CompileMesh(planeVertices, planeIndices);
+
+	//Tree
+
+	float treeVertices[] = {
+		// Position           // Normal
+
+		// Bottom face
+		0, 0, 0,              0, -1, 0,
+		1, 0, 0,              0, -1, 0,
+		1, 0, 1,              0, -1, 0,
+		0, 0, 1,              0, -1, 0,
+
+		// Top face
+		0, 2, 0,              0, 1, 0,
+		1, 2, 0,              0, 1, 0,
+		1, 2, 1,              0, 1, 0,
+		0, 2, 1,              0, 1, 0,
+
+		// Front face
+		0, 0, 1,              0, 0, 1,
+		1, 0, 1,              0, 0, 1,
+		1, 2, 1,              0, 0, 1,
+		0, 2, 1,              0, 0, 1,
+
+		// Back face
+		0, 0, 0,              0, 0, -1,
+		1, 0, 0,              0, 0, -1,
+		1, 2, 0,              0, 0, -1,
+		0, 2, 0,              0, 0, -1,
+
+		// Left face
+		0, 0, 0,              -1, 0, 0,
+		0, 0, 1,              -1, 0, 0,
+		0, 2, 1,              -1, 0, 0,
+		0, 2, 0,              -1, 0, 0,
+
+		// Right face
+		1, 0, 0,              1, 0, 0,
+		1, 0, 1,              1, 0, 0,
+		1, 2, 1,              1, 0, 0,
+		1, 2, 0,              1, 0, 0,
+	};
+
+	unsigned int treeIndices[] = {
+		// Bottom      (vertices  0–3)
+		0, 1, 2,   2, 3, 0,
+		// Top         (vertices  4–7)
+		4, 5, 6,   6, 7, 4,
+		// Front       (vertices  8–11)
+		8, 9,10,  10,11, 8,
+		// Back        (vertices 12–15)
+	   12,13,14,  14,15,12,
+	   // Left        (vertices 16–19)
+	  16,17,18,  18,19,16,
+	  // Right       (vertices 20–23)
+	 20,21,22,  22,23,20
+	};
+
+	treeMesh.CompileMesh(treeVertices, treeIndices, 36);
 }
 
 void CreateShaders() {
 	planeShader = Shader();
 	planeShader.CompileShader("src/shaders/Plane.vert", "src/shaders/Plane.frag");
+
+	treeShader = Shader();
+	treeShader.CompileShader("src/shaders/Tree.vert", "src/shaders/Tree.frag");
 }
 
 void SetTransformations() {
 	//Plane transformation
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(0.0, 0.0, 0.0));
-	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(2.0f, 2.0f, 2.0f));
+	//model = glm::rotate(model, glm::radians(15.0f), glm::vec3(2.0f, 0.0f, 0.0f));
 	//model = glm::scale(model, glm::vec3(5.0f, 5.0f, 5.0f));
 
 	cameraRight = glm::normalize(glm::cross(cameraFront, worldUp));
@@ -167,25 +241,58 @@ void SetTransformations() {
 
 }
 
+void SetTreeTransformations() {
+	model = glm::mat4(1.0f);
+	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 2.0f)); // Move tree on plane
+	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+	glUniformMatrix4fv(treeShader.GetModelLoc(), 1, GL_FALSE, glm::value_ptr(model));
+	glUniformMatrix4fv(treeShader.GetViewLoc(), 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(treeShader.GetProjectionLoc(), 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void LightningSetup() {
+	//Directional Light
+	lightColor = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+	ambientIntensity = 0.2f;
+	diffuseIntensity = 0.9f;
+	lightDirection = glm::vec3(-0.0f, -0.3f, 1.0f);
+
+	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);
+}
+
 void RenderScene() {
 	
 
+	planeShader.UseShader();
+	//Perlin Texture
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, perlinTex);
+	glUniform1i(glGetUniformLocation(planeShader.GetShaderID(), "perlinNoise"), 0);
+	//Transform
 	SetTransformations();
+	//Lightning
+	planeShader.SetDirectionalLight(directionalLight);
+	//Draw
 	planeMesh.RenderMesh();
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_IMAGE_2D, perlinTex);
-	glUniform1i(glGetUniformLocation(planeShader.GetShaderID(), "perlinNoise"), 0);
-}
+	//Tree
+	treeShader.UseShader();
 
+	//Transform
+	SetTreeTransformations();
+	//Lightning
+	treeShader.SetDirectionalLight(directionalLight);
+
+	treeMesh.RenderMesh();
+}
+//Will be set per frame
 void RenderPass() {
-	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	glClearColor(0.4f, 0.6f, 1.0f, 1.0f);  
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
-
-
-	planeShader.UseShader();
 
 	RenderScene();
 }
@@ -199,20 +306,20 @@ int main() {
 	glfwSetInputMode(mainWindow.GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(mainWindow.GetWindow(), HandleMouse);
 
+	//Will be set just once
 	CreateObjects();
 
 	CreateShaders();
 
 	PerlinTexture();
 
+	LightningSetup();
 
 	while (!mainWindow.GetShouldClose()) {
 
 		mainWindow.HandleKeys(cameraPos, cameraFront, cameraRight);
 		
 		RenderPass();
-
-
 		
 		mainWindow.SwapBuffers();
 		glfwPollEvents();
