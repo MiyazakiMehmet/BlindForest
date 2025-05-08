@@ -63,5 +63,7 @@
   <ItemGroup>
     <None Include="src\shaders\Plane.vert" />
     <None Include="src\shaders\Plane.frag" />
+    <None Include="src\shaders\Tree.vert" />
+    <None Include="src\shaders\Tree.frag" />
   </ItemGroup>
 </Project>
