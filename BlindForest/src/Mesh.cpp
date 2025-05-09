@@ -22,7 +22,7 @@ void Mesh::CompileMesh(float* vertices, unsigned int* indices, unsigned int numO
 	glGenBuffers(1, &IBO); //Generates an id for IBO
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO); //From now on only element array buffer implemantaion and functions stored in VBO
 
-	glBufferData(GL_ARRAY_BUFFER, 144 * sizeof(float), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 24 * 6 * sizeof(float), vertices, GL_STATIC_DRAW);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);

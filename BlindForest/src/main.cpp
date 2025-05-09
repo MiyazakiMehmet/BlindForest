@@ -8,6 +8,7 @@
 #include "Shader.h"
 #include "PerlinNoise2D.h"
 #include "DirectionalLight.h"
+#include "Material.h"
 
 #include <iostream>
 #include <vector>
@@ -20,7 +21,7 @@ Shader planeShader;
 DirectionalLight directionalLight;
 Mesh treeMesh;
 Shader treeShader;
-
+Material material;
 
 std::vector<float> planeVertices;
 std::vector<unsigned int> planeIndices;
@@ -51,6 +52,8 @@ glm::vec3 lightColor;
 float ambientIntensity;
 float diffuseIntensity;
 glm::vec3 lightDirection;
+float specularIntensity;
+float shininess;
 
 
 void PerlinTexture() {
@@ -159,40 +162,40 @@ void CreateObjects() {
 		// Position           // Normal
 
 		// Bottom face
-		0, 0, 0,              0, -1, 0,
-		1, 0, 0,              0, -1, 0,
-		1, 0, 1,              0, -1, 0,
-		0, 0, 1,              0, -1, 0,
+		0, 0, 0,              0, 1, 0,
+		1, 0, 0,              0, 1, 0,
+		1, 0, 1,              0, 1, 0,
+		0, 0, 1,              0, 1, 0,
 
 		// Top face
-		0, 2, 0,              0, 1, 0,
-		1, 2, 0,              0, 1, 0,
-		1, 2, 1,              0, 1, 0,
-		0, 2, 1,              0, 1, 0,
+		0, 2, 0,              0, -1, 0,
+		1, 2, 0,              0, -1, 0,
+		1, 2, 1,              0, -1, 0,
+		0, 2, 1,              0, -1, 0,
 
 		// Front face
-		0, 0, 1,              0, 0, 1,
-		1, 0, 1,              0, 0, 1,
-		1, 2, 1,              0, 0, 1,
-		0, 2, 1,              0, 0, 1,
+		0, 0, 1,              0, 0, -1,
+		1, 0, 1,              0, 0, -1,
+		1, 2, 1,              0, 0, -1,
+		0, 2, 1,              0, 0, -1,
 
 		// Back face
-		0, 0, 0,              0, 0, -1,
-		1, 0, 0,              0, 0, -1,
-		1, 2, 0,              0, 0, -1,
-		0, 2, 0,              0, 0, -1,
+		0, 0, 0,              0, 0, 1,
+		1, 0, 0,              0, 0, 1,
+		1, 2, 0,              0, 0, 1,
+		0, 2, 0,              0, 0, 1,
 
 		// Left face
-		0, 0, 0,              -1, 0, 0,
-		0, 0, 1,              -1, 0, 0,
-		0, 2, 1,              -1, 0, 0,
-		0, 2, 0,              -1, 0, 0,
+		0, 0, 0,              1, 0, 0,
+		0, 0, 1,              1, 0, 0,
+		0, 2, 1,              1, 0, 0,
+		0, 2, 0,              1, 0, 0,
 
 		// Right face
-		1, 0, 0,              1, 0, 0,
-		1, 0, 1,              1, 0, 0,
-		1, 2, 1,              1, 0, 0,
-		1, 2, 0,              1, 0, 0,
+		1, 0, 0,              -1, 0, 0,
+		1, 0, 1,              -1, 0, 0,
+		1, 2, 1,              -1, 0, 0,
+		1, 2, 0,              -1, 0, 0,
 	};
 
 	unsigned int treeIndices[] = {
@@ -257,15 +260,22 @@ void LightningSetup() {
 	lightColor = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
 	ambientIntensity = 0.2f;
 	diffuseIntensity = 0.9f;
-	lightDirection = glm::vec3(-0.0f, -0.3f, 1.0f);
+	lightDirection = glm::vec3(0.0f, -0.1f, -1.0f);
+	specularIntensity = 1.0f;
+	shininess = 12.0f;
 
 	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);
+	material = Material(specularIntensity, shininess);
 }
 
 void RenderScene() {
 	
 
 	planeShader.UseShader();
+
+	//Get eye position every frame
+	glUniform3f(planeShader.GetEyePosLoc(), cameraPos.x, cameraPos.y, cameraPos.z);
+
 	//Perlin Texture
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, perlinTex);
@@ -274,16 +284,21 @@ void RenderScene() {
 	SetTransformations();
 	//Lightning
 	planeShader.SetDirectionalLight(directionalLight);
+	planeShader.SetMaterial(material);
 	//Draw
 	planeMesh.RenderMesh();
 
 	//Tree
 	treeShader.UseShader();
 
+	//Get eye position every frame
+	glUniform3f(treeShader.GetEyePosLoc(), cameraPos.x, cameraPos.y, cameraPos.z);
+
 	//Transform
 	SetTreeTransformations();
 	//Lightning
 	treeShader.SetDirectionalLight(directionalLight);
+	treeShader.SetMaterial(material);
 
 	treeMesh.RenderMesh();
 }

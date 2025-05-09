@@ -87,6 +87,9 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 	ambientIntensityLoc = glGetUniformLocation(shaderID, "directionalLight.base.ambientIntensity");
 	diffuseIntensityLoc = glGetUniformLocation(shaderID, "directionalLight.base.diffuseIntensity");
 	lightDirLoc = glGetUniformLocation(shaderID, "directionalLight.lightDirection");
+	specularIntensityLoc = glGetUniformLocation(shaderID, "material.specularIntensity");
+	shininessLoc = glGetUniformLocation(shaderID, "material.shininess");
+	eyePosLoc = glGetUniformLocation(shaderID, "eyePos");
 }
 
 void Shader::UseShader()
@@ -97,6 +100,11 @@ void Shader::UseShader()
 void Shader::SetDirectionalLight(DirectionalLight directionalLight)
 {
 	directionalLight.UseLight(lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc);
+}
+
+void Shader::SetMaterial(Material material)
+{
+	material.UseMaterial(specularIntensityLoc, shininessLoc);
 }
 
 unsigned int Shader::GetModelLoc()
@@ -114,24 +122,9 @@ unsigned int Shader::GetProjectionLoc()
 	return projectionLoc;
 }
 
-unsigned int Shader::GetLightColorLoc()
+unsigned int Shader::GetEyePosLoc()
 {
-	return lightColorLoc;
-}
-
-unsigned int Shader::GetAmbIntensityLoc()
-{
-	return ambientIntensityLoc;
-}
-
-unsigned int Shader::GetDifIntensityLoc()
-{
-	return diffuseIntensityLoc;
-}
-
-unsigned int Shader::GetLightDirLoc()
-{
-	return lightDirLoc;
+	return eyePosLoc;
 }
 
 Shader::~Shader()
