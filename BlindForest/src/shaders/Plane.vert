@@ -15,8 +15,7 @@ void main(){
 
 	fragPos = vec3(model * vec4(pos, 1.0));
     vec3 normal = normalize(vec3(0.0, 1.0, 0.0));
-    fragNormal = normalize(mat3(model) * normal);
-
+	fragNormal = normalize(mat3(transpose(inverse(model))) * normal);
 	texCoords = pos.xz * 0.4;
 	gl_Position = projection * view * model * vec4(pos, 1.0);
 }

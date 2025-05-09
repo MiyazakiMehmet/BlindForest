@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "DirectionalLight.h"
+#include "Material.h"
 
 
 class Shader
@@ -18,7 +19,8 @@ private:
 	std::string vertexCode, fragmentCode;
 	//Uniforms
 	unsigned int modelLoc, viewLoc, projectionLoc,
-		         lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc;
+		         lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc,
+				 specularIntensityLoc, shininessLoc, eyePosLoc;
 
 public:
 	Shader();
@@ -30,14 +32,12 @@ public:
 
 	//light
 	void SetDirectionalLight(DirectionalLight directionalLight);
+	void SetMaterial(Material material);
 	//Getters for uniforms
 	unsigned int GetModelLoc();
 	unsigned int GetViewLoc();
 	unsigned int GetProjectionLoc();
-	unsigned int GetLightColorLoc();
-	unsigned int GetAmbIntensityLoc();
-	unsigned int GetDifIntensityLoc();
-	unsigned int GetLightDirLoc();
+	unsigned int GetEyePosLoc();
 
 	~Shader();
 };
