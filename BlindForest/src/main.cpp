@@ -3,11 +3,14 @@
 #include <gtc/matrix_transform.hpp>
 #include <gtc/type_ptr.hpp>
 
+#include "GlobalValues.h"
+
 #include "Window.h"
 #include "Mesh.h"
 #include "Shader.h"
 #include "PerlinNoise2D.h"
 #include "DirectionalLight.h"
+#include "PointLight.h"
 #include "Material.h"
 
 #include <iostream>
@@ -19,6 +22,7 @@ Window mainWindow;
 Mesh planeMesh;
 Shader planeShader;
 DirectionalLight directionalLight;
+PointLight pointLight[MAX_POINT_LIGHT];
 Mesh treeMesh;
 Shader treeShader;
 Material material;
@@ -34,7 +38,7 @@ glm::mat4 view;
 glm::mat4 projection;
 
 glm::vec3 cameraPos = glm::vec3(0.0f, 3.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //Where camera lookss
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f); //Where camera looks
 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 glm::vec3 cameraRight, cameraUp;
 float cameraSpeed = 2.5f;
@@ -54,6 +58,11 @@ float diffuseIntensity;
 glm::vec3 lightDirection;
 float specularIntensity;
 float shininess;
+glm::vec3 pointLightPosition;
+int pointLightCount = 0;
+float constant;
+float linear;
+float exponent;
 
 
 void PerlinTexture() {
@@ -264,7 +273,17 @@ void LightningSetup() {
 	specularIntensity = 1.0f;
 	shininess = 12.0f;
 
+	glm::vec3 pointLightColor = glm::normalize(glm::vec3(0.0f, 1.0f, 1.0f));
+	pointLightPosition = glm::vec3(5.0f, 4.0f, 0.0f);
+	float pointLightAmbientIntensity = 0.2f;
+	float pointLightDiffuseIntensity = 6.9f;
+	constant = 1.0f;
+	linear = 0.1f;
+	exponent = 0.1f;
+	pointLightCount++;
+
 	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);
+	pointLight[0] = PointLight(pointLightColor, pointLightAmbientIntensity, pointLightDiffuseIntensity, pointLightPosition, constant, linear, exponent);
 	material = Material(specularIntensity, shininess);
 }
 
@@ -284,6 +303,7 @@ void RenderScene() {
 	SetTransformations();
 	//Lightning
 	planeShader.SetDirectionalLight(directionalLight);
+	planeShader.SetPointLight(pointLight, pointLightCount);
 	planeShader.SetMaterial(material);
 	//Draw
 	planeMesh.RenderMesh();
@@ -298,6 +318,7 @@ void RenderScene() {
 	SetTreeTransformations();
 	//Lightning
 	treeShader.SetDirectionalLight(directionalLight);
+	treeShader.SetPointLight(pointLight, pointLightCount);
 	treeShader.SetMaterial(material);
 
 	treeMesh.RenderMesh();

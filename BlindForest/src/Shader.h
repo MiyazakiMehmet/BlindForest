@@ -7,7 +7,10 @@
 #include <sstream>
 #include <fstream>
 
+#include "GlobalValues.h"
+
 #include "DirectionalLight.h"
+#include "PointLight.h"
 #include "Material.h"
 
 
@@ -19,8 +22,22 @@ private:
 	std::string vertexCode, fragmentCode;
 	//Uniforms
 	unsigned int modelLoc, viewLoc, projectionLoc,
-		         lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc,
-				 specularIntensityLoc, shininessLoc, eyePosLoc;
+		  		lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc,
+		 		specularIntensityLoc, shininessLoc, eyePosLoc,
+		 		pointLightCountLoc;
+
+	struct PointLightUniform {
+		unsigned int colorLoc;
+		unsigned int ambientIntensityLoc;
+		unsigned int diffuseIntensityLoc;
+
+		unsigned int positionLoc;
+		unsigned int constantLoc;
+		unsigned int linearLoc;
+		unsigned int exponentLoc;
+	};
+
+	PointLightUniform pointLights[MAX_POINT_LIGHT];
 
 public:
 	Shader();
@@ -32,6 +49,7 @@ public:
 
 	//light
 	void SetDirectionalLight(DirectionalLight directionalLight);
+	void SetPointLight(PointLight* pointLight, int pointLightCount);
 	void SetMaterial(Material material);
 	//Getters for uniforms
 	unsigned int GetModelLoc();

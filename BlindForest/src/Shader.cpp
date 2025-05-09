@@ -90,6 +90,41 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 	specularIntensityLoc = glGetUniformLocation(shaderID, "material.specularIntensity");
 	shininessLoc = glGetUniformLocation(shaderID, "material.shininess");
 	eyePosLoc = glGetUniformLocation(shaderID, "eyePos");
+	
+	//Point Light
+	pointLightCountLoc = glGetUniformLocation(shaderID, "pointLightCount");
+
+	for (size_t i = 0; i < MAX_POINT_LIGHT; i++) {
+		char locBuff[100] = { '\0' };
+
+		// base.lightColor
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.lightColor", i);
+		pointLights[i].colorLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		// base.ambientIntensity
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.ambientIntensity", i);
+		pointLights[i].ambientIntensityLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		// base.diffuseIntensity
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.diffuseIntensity", i);
+		pointLights[i].diffuseIntensityLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].position", i); //That func will store the string that we specified (%d = 0,1,2...)
+		pointLights[i].positionLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].constant", i); //That func will store the string that we specified (%d = 0,1,2...)
+		pointLights[i].constantLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].linear", i); //That func will store the string that we specified (%d = 0,1,2...)
+		pointLights[i].linearLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].exponent", i); //That func will store the string that we specified (%d = 0,1,2...)
+		pointLights[i].exponentLoc = glGetUniformLocation(shaderID, locBuff);
+
+	}
 }
 
 void Shader::UseShader()
@@ -100,6 +135,21 @@ void Shader::UseShader()
 void Shader::SetDirectionalLight(DirectionalLight directionalLight)
 {
 	directionalLight.UseLight(lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc);
+}
+
+void Shader::SetPointLight(PointLight* pointLight, int pointLightCount)
+{
+	if (pointLightCount > MAX_POINT_LIGHT) {
+		pointLightCount = MAX_POINT_LIGHT;
+	}
+
+	glUniform1i(pointLightCountLoc, pointLightCount);
+
+
+	for (int i = 0; i < pointLightCount; i++) {
+		pointLight[i].UseLight(pointLights[i].colorLoc, pointLights[i].ambientIntensityLoc, pointLights[i].diffuseIntensityLoc,
+			pointLights[i].positionLoc, pointLights[i].constantLoc, pointLights[i].linearLoc, pointLights[i].exponentLoc);
+	}
 }
 
 void Shader::SetMaterial(Material material)
