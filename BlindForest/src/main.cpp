@@ -11,6 +11,7 @@
 #include "PerlinNoise2D.h"
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include "Material.h"
 
 #include <iostream>
@@ -23,6 +24,7 @@ Mesh planeMesh;
 Shader planeShader;
 DirectionalLight directionalLight;
 PointLight pointLight[MAX_POINT_LIGHT];
+SpotLight spotLight[MAX_SPOT_LIGHT];
 Mesh treeMesh;
 Shader treeShader;
 Material material;
@@ -63,7 +65,8 @@ int pointLightCount = 0;
 float constant;
 float linear;
 float exponent;
-
+glm::vec3 spotLightPosition;
+int spotLightCount = 0;
 
 void PerlinTexture() {
 	
@@ -273,7 +276,7 @@ void LightningSetup() {
 	specularIntensity = 1.0f;
 	shininess = 12.0f;
 
-	glm::vec3 pointLightColor = glm::normalize(glm::vec3(0.0f, 1.0f, 1.0f));
+	glm::vec3 pointLightColor = glm::vec3(0.0f, 1.0f, 1.0f);
 	pointLightPosition = glm::vec3(5.0f, 4.0f, 0.0f);
 	float pointLightAmbientIntensity = 0.2f;
 	float pointLightDiffuseIntensity = 6.9f;
@@ -282,13 +285,28 @@ void LightningSetup() {
 	exponent = 0.1f;
 	pointLightCount++;
 
+	glm::vec3 spotLightColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	spotLightPosition = cameraPos;
+	float spotLightAmbientIntensity = 0.6f;
+	float spotLightDiffuseIntensity = 4.9f;
+	constant = 0.3f;
+	linear = 0.9f;
+	exponent = 0.9f;
+	glm::vec3 spotLightDirection = cameraFront;
+	float edge = 20.0f;
+	spotLightCount++;
+
 	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);
 	pointLight[0] = PointLight(pointLightColor, pointLightAmbientIntensity, pointLightDiffuseIntensity, pointLightPosition, constant, linear, exponent);
+	spotLight[0] = SpotLight(spotLightColor, spotLightAmbientIntensity, spotLightDiffuseIntensity, spotLightPosition, constant, linear, exponent, spotLightDirection, edge);
 	material = Material(specularIntensity, shininess);
 }
 
 void RenderScene() {
 	
+	//Update SpotLight
+	spotLight[0].UpdateSpotLightPosition(cameraPos + glm::vec3(0.0f, 0.2f, 0.0f));
+	spotLight[0].UpdateSpotLightDirection(cameraFront);
 
 	planeShader.UseShader();
 
@@ -304,6 +322,7 @@ void RenderScene() {
 	//Lightning
 	planeShader.SetDirectionalLight(directionalLight);
 	planeShader.SetPointLight(pointLight, pointLightCount);
+	planeShader.SetSpotLight(spotLight, spotLightCount);
 	planeShader.SetMaterial(material);
 	//Draw
 	planeMesh.RenderMesh();
@@ -319,6 +338,7 @@ void RenderScene() {
 	//Lightning
 	treeShader.SetDirectionalLight(directionalLight);
 	treeShader.SetPointLight(pointLight, pointLightCount);
+	planeShader.SetSpotLight(spotLight, spotLightCount);
 	treeShader.SetMaterial(material);
 
 	treeMesh.RenderMesh();

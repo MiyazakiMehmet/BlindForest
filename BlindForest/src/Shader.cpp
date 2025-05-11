@@ -98,17 +98,17 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 		char locBuff[100] = { '\0' };
 
 		// base.lightColor
-		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.lightColor", i);
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].base.lightColor", i);
 		pointLights[i].colorLoc =
 			glGetUniformLocation(shaderID, locBuff);
 
 		// base.ambientIntensity
-		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.ambientIntensity", i);
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].base.ambientIntensity", i);
 		pointLights[i].ambientIntensityLoc =
 			glGetUniformLocation(shaderID, locBuff);
 
 		// base.diffuseIntensity
-		snprintf(locBuff, sizeof(locBuff), "pointLight[%zu].base.diffuseIntensity", i);
+		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].base.diffuseIntensity", i);
 		pointLights[i].diffuseIntensityLoc =
 			glGetUniformLocation(shaderID, locBuff);
 
@@ -123,7 +123,46 @@ void Shader::CompileShader(std::string vertexShaderFile, std::string fragmentSha
 
 		snprintf(locBuff, sizeof(locBuff), "pointLight[%d].exponent", i); //That func will store the string that we specified (%d = 0,1,2...)
 		pointLights[i].exponentLoc = glGetUniformLocation(shaderID, locBuff);
+	}
 
+	//SpotLight
+	spotLightCountLoc = glGetUniformLocation(shaderID, "spotLightCount");
+
+	for (size_t i = 0; i < MAX_SPOT_LIGHT; i++) {
+		char locBuff[100] = { '\0' };
+
+		// base.lightColor
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].base.base.lightColor", i);
+		spotLights[i].colorLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		// base.ambientIntensity
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].base.ambientIntensity", i);
+		spotLights[i].ambientIntensityLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		// base.diffuseIntensity
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].base.diffuseIntensity", i);
+		spotLights[i].diffuseIntensityLoc =
+			glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].base.position", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].positionLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].constant", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].constantLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].linear", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].linearLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].exponent", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].exponentLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].direction", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].lightDirLoc = glGetUniformLocation(shaderID, locBuff);
+
+		snprintf(locBuff, sizeof(locBuff), "spotLight[%d].edge", i); //That func will store the string that we specified (%d = 0,1,2...)
+		spotLights[i].edgeLoc = glGetUniformLocation(shaderID, locBuff);
 	}
 }
 
@@ -149,6 +188,22 @@ void Shader::SetPointLight(PointLight* pointLight, int pointLightCount)
 	for (int i = 0; i < pointLightCount; i++) {
 		pointLight[i].UseLight(pointLights[i].colorLoc, pointLights[i].ambientIntensityLoc, pointLights[i].diffuseIntensityLoc,
 			pointLights[i].positionLoc, pointLights[i].constantLoc, pointLights[i].linearLoc, pointLights[i].exponentLoc);
+	}
+}
+
+void Shader::SetSpotLight(SpotLight* spotLight, int spotLightCount)
+{
+	if (spotLightCount > MAX_SPOT_LIGHT) {
+		spotLightCount = MAX_SPOT_LIGHT;
+	}
+
+	glUniform1i(spotLightCountLoc, spotLightCount);
+
+
+	for (int i = 0; i < spotLightCount; i++) {
+		spotLight[i].UseLight(spotLights[i].colorLoc, spotLights[i].ambientIntensityLoc, spotLights[i].diffuseIntensityLoc,
+			spotLights[i].positionLoc, spotLights[i].constantLoc, spotLights[i].linearLoc, spotLights[i].exponentLoc,
+			spotLights[i].lightDirLoc, spotLights[i].edgeLoc);
 	}
 }
 
