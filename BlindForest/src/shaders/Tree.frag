@@ -1,6 +1,7 @@
 #version 330 core
 
 const int MAX_POINT_LIGHT = 3;
+const int MAX_SPOT_LIGHT = 3;
 
 in vec3 fragPos;
 in vec3 fragNormal;
@@ -25,6 +26,12 @@ struct PointLight{
     float exponent;
 };
 
+struct SpotLight{
+    PointLight base;
+    vec3 direction;
+    float edge;
+};
+
 struct Material{
     float specularIntensity;
     float shininess;
@@ -34,6 +41,9 @@ uniform DirectionalLight directionalLight;
 
 uniform int pointLightCount;
 uniform PointLight pointLight[MAX_POINT_LIGHT];
+
+uniform int spotLightCount;
+uniform SpotLight spotLight[MAX_SPOT_LIGHT];
 
 uniform Material material;
 uniform vec3 eyePos;
@@ -81,6 +91,21 @@ vec3 CalcPointLight(PointLight plight){
     return (color / attenuation);
 }
 
+vec3 CalcSpotLight(SpotLight slight){
+    vec3 lightToFrag = normalize(fragPos - slight.base.position);
+
+    float slFactor = dot(normalize(slight.direction), lightToFrag);
+
+    if(slFactor > slight.edge){
+        float intensity = (1.0f - (1.0f - slFactor)*(1.0f/(1.0f - slight.edge)));
+        vec3 color = CalcPointLight(slight.base);
+        return vec3(1.0, 1.0, 1.0) * intensity;
+    }
+    else{
+        return vec3(0.0, 0.0, 0.0);
+    }
+}
+
 vec3 CalcPointLights(){
     vec3 totalColor = vec3(0.0, 0.0, 0.0);
 
@@ -91,11 +116,21 @@ vec3 CalcPointLights(){
     return totalColor;
 }
 
+vec3 CalcSpotLights(){
+    vec3 totalColor = vec3(0.0, 0.0, 0.0);
+    for(int i = 0; i < spotLightCount; i++){
+        totalColor += CalcSpotLight(spotLight[i]);
+    }
+
+    return totalColor;
+}
+
 void main() {
     
     vec3 treeColor = vec3(0.0, 0.6, 0.0); // green
     vec3 finalColor = CalcDirectionalLight();
     finalColor += CalcPointLights();
+    finalColor += CalcSpotLights();
     finalColor *= treeColor;
 
 

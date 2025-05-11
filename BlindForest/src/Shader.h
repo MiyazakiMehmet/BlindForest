@@ -11,6 +11,7 @@
 
 #include "DirectionalLight.h"
 #include "PointLight.h"
+#include "SpotLight.h"
 #include "Material.h"
 
 
@@ -24,7 +25,7 @@ private:
 	unsigned int modelLoc, viewLoc, projectionLoc,
 		  		lightColorLoc, ambientIntensityLoc, diffuseIntensityLoc, lightDirLoc,
 		 		specularIntensityLoc, shininessLoc, eyePosLoc,
-		 		pointLightCountLoc;
+		 		pointLightCountLoc, spotLightCountLoc;
 
 	struct PointLightUniform {
 		unsigned int colorLoc;
@@ -39,6 +40,21 @@ private:
 
 	PointLightUniform pointLights[MAX_POINT_LIGHT];
 
+	struct SpotLightUniform {
+		unsigned int colorLoc;
+		unsigned int ambientIntensityLoc;
+		unsigned int diffuseIntensityLoc;
+
+		unsigned int positionLoc;
+		unsigned int constantLoc;
+		unsigned int linearLoc;
+		unsigned int exponentLoc;
+		unsigned int lightDirLoc;
+		unsigned int edgeLoc;
+	};
+
+	SpotLightUniform spotLights[MAX_SPOT_LIGHT];
+
 public:
 	Shader();
 
@@ -50,6 +66,7 @@ public:
 	//light
 	void SetDirectionalLight(DirectionalLight directionalLight);
 	void SetPointLight(PointLight* pointLight, int pointLightCount);
+	void SetSpotLight(SpotLight* spotLight, int spotLightCount);
 	void SetMaterial(Material material);
 	//Getters for uniforms
 	unsigned int GetModelLoc();
