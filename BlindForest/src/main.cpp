@@ -285,15 +285,15 @@ void LightningSetup() {
 	exponent = 0.1f;
 	pointLightCount++;
 
-	glm::vec3 spotLightColor = glm::vec3(1.0f, 0.0f, 0.0f);
+	glm::vec3 spotLightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	spotLightPosition = cameraPos;
 	float spotLightAmbientIntensity = 0.6f;
 	float spotLightDiffuseIntensity = 4.9f;
-	constant = 0.3f;
-	linear = 0.9f;
-	exponent = 0.9f;
+	constant = 1.3f;
+	linear = 0.1f;
+	exponent = 1.0f;
 	glm::vec3 spotLightDirection = cameraFront;
-	float edge = 20.0f;
+	float edge = 10.0f;
 	spotLightCount++;
 
 	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);
@@ -338,7 +338,7 @@ void RenderScene() {
 	//Lightning
 	treeShader.SetDirectionalLight(directionalLight);
 	treeShader.SetPointLight(pointLight, pointLightCount);
-	planeShader.SetSpotLight(spotLight, spotLightCount);
+	treeShader.SetSpotLight(spotLight, spotLightCount);
 	treeShader.SetMaterial(material);
 
 	treeMesh.RenderMesh();

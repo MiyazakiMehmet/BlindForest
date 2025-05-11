@@ -92,18 +92,14 @@ vec3 CalcPointLight(PointLight plight){
 }
 
 vec3 CalcSpotLight(SpotLight slight){
-    vec3 lightToFrag = fragPos - slight.base.position;
-    if (length(lightToFrag) < 0.01)
-     return vec3(0.0);
-    lightToFrag = normalize(lightToFrag);
+    vec3 lightToFrag = normalize(fragPos - slight.base.position);
 
-    float slFactor = dot(lightToFrag, normalize(slight.direction));
+    float slFactor = dot(normalize(slight.direction), lightToFrag);
 
     if(slFactor > slight.edge){
-        float intensity = (slFactor - slight.edge) / (1.0 - slight.edge);
+        float intensity = (1.0f - (1.0f - slFactor)*(1.0f/(1.0f - slight.edge)));
         vec3 color = CalcPointLight(slight.base);
-        
-        return color * intensity;
+        return vec3(1.0, 1.0, 1.0) * intensity;
     }
     else{
         return vec3(0.0, 0.0, 0.0);
