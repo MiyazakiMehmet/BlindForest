@@ -13,7 +13,7 @@ Light::Light(glm::vec3 lightCol, float ambIntensity, float difIntensity)
 	ambientIntensity = ambIntensity;
 	diffuseIntensity = difIntensity;
 }
-//h
+
 void Light::UseLight(unsigned int lightColorLoc, unsigned int ambIntensityLoc, unsigned int difIntensityLoc)
 {
 	glUniform3f(lightColorLoc, lightColor.x, lightColor.y, lightColor.z);
