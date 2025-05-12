@@ -162,6 +162,7 @@
     <ClInclude Include="src\PointLight.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\SpotLight.h" />
+    <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\Texture.h" />
     <ClInclude Include="src\Window.h" />
   </ItemGroup>
