@@ -6,14 +6,50 @@ Model::Model()
 
 void Model::LoadModel(std::string& filePath)
 {
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals | aiProcess_JoinIdenticalVertices);
+
+	if (!scene) {
+		std::cout << "Model " << filePath << " failed to load: " << importer.GetErrorString() << std::endl;
+
+		return;
+	}
+
+	//this will get the very first node in the scene (the one thats on the center)
+	LoadNode(scene->mRootNode, scene);
+
+	//load Texture 
+	LoadMaterial(scene);
 }
 
 void Model::RenderModel()
 {
+	for (size_t i = 0; i < meshList.size(); i++) {
+
+		unsigned int materialIndex = meshToTex[i]; //grabbing material index
+
+		//check whether index valids
+		if (materialIndex < textureList.size() && textureList[materialIndex]) {
+			textureList[materialIndex]->UseTexture();
+		}
+		//first drawed texture and draw mesh
+		meshList[i]->RenderMesh();
+	}
 }
 
 void Model::ClearModel()
 {
+	for (size_t i = 0; i < meshList.size(); i++) {
+		if (meshList[i]) {
+			delete meshList[i];
+			meshList[i] = nullptr;
+		}
+
+		if (textureList[i]) {
+			delete textureList[i];
+			textureList[i] = nullptr;
+		}
+	}
 }
 
 
@@ -46,7 +82,7 @@ void Model::LoadMesh(aiMesh* mesh, const aiScene* scene)
 			vertices.insert(vertices.end(), { 0.0f, 0.0f });
 		}
 		//Normals
-		vertices.insert(vertices.end(), { -mesh->mNormals[i].x,  -mesh->mNormals[i].y, -mesh->mNormals[i].z });
+		vertices.insert(vertices.end(), { mesh->mNormals[i].x,  mesh->mNormals[i].y, mesh->mNormals[i].z });
 	}
 
 	//Indices Load
@@ -58,7 +94,7 @@ void Model::LoadMesh(aiMesh* mesh, const aiScene* scene)
 	}
 
 	Mesh* newMesh = new Mesh();
-	newMesh->CompileMesh(&vertices[0], &indices[0], indices.size());
+	newMesh->CompileMesh(vertices, indices);
 	meshList.push_back(newMesh);
 	meshToTex.push_back(mesh->mMaterialIndex);
 }
@@ -80,16 +116,33 @@ void Model::LoadMaterial(const aiScene* scene)
 				int idx = std::string(path.data).rfind("\\");
 				std::string fileName = std::string(path.data).substr(idx + 1);
 
-				std::string texPath = std::string("Textures/") + fileName;
+				std::string texPath = std::string("src/textures/") + fileName;
 
-				//textureList[i] = new Texture(texPath.c_str());
-				//
-				//if (!textureList[i]->LoadTexture()) {
-				//	printf("Failed to load texture at: %s", texPath);
-				//
-				//	delete textureList[i];
-				//	textureList[i] = nullptr;
-				//}
+				textureList[i] = new Texture(texPath.c_str());
+				
+				if (!textureList[i]->LoadTexture()) {
+						std::cout << "Failed to load texture at: " << texPath << std::endl;
+
+					delete textureList[i];
+					textureList[i] = nullptr;
+				}
+			}
+		}
+		//If model does not have a diffuse texture assigned to assimp texture will not be found.
+		if (textureList[i] == nullptr) {
+			std::cout << "No DIFFUSE textures found for material: " << i << " assigning fallback." << std::endl;
+
+			// Set missing texture with existing one
+			std::string fallbackTex = "src/textures/bark_0004.jpg";
+			textureList[i] = new Texture(fallbackTex.c_str());
+
+			if (!textureList[i]->LoadTexture()) {
+				std::cout << "Failed to load fallback texture for material " << i << std::endl;
+				delete textureList[i];
+				textureList[i] = nullptr;
+			}
+			else {
+				std::cout << "Fallback texture assigned to material " << i << std::endl;
 			}
 		}
 	}
@@ -97,4 +150,5 @@ void Model::LoadMaterial(const aiScene* scene)
 
 Model::~Model()
 {
+	ClearModel();
 }

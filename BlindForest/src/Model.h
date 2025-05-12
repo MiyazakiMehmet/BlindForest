@@ -5,12 +5,12 @@
 #include <vector>
 #include <string>
 
+#include "Mesh.h"
+#include "Texture.h"
+
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
-
-#include "Mesh.h"
-#include "Texture.h"
 
 class Model {
 private:
@@ -18,8 +18,8 @@ private:
 	void LoadMesh(aiMesh* mesh, const aiScene* scene);
 	void LoadMaterial(const aiScene* scene);
 
-	std::vector<Mesh*> meshList;
-	std::vector<Texture*> textureList;
+	std::vector<Mesh* > meshList;
+	std::vector<Texture* > textureList;
 	std::vector<unsigned int> meshToTex;
 public:
 	Model();

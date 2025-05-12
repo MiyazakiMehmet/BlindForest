@@ -28,9 +28,10 @@ Shader planeShader;
 DirectionalLight directionalLight;
 PointLight pointLight[MAX_POINT_LIGHT];
 SpotLight spotLight[MAX_SPOT_LIGHT];
-Mesh treeMesh;
+Model treeModel;
 Shader treeShader;
 Material material;
+Texture texture;
 
 std::vector<float> planeVertices;
 std::vector<unsigned int> planeIndices;
@@ -70,6 +71,8 @@ float linear;
 float exponent;
 glm::vec3 spotLightPosition;
 int spotLightCount = 0;
+
+glm::vec3 treePos;
 
 void PerlinTexture() {
 	
@@ -147,6 +150,15 @@ void CreateObjects() {
 			planeVertices.push_back(xPos);
 			planeVertices.push_back(yPos);
 			planeVertices.push_back(zPos);
+
+			// Texture coords (u, v)
+			planeVertices.push_back((float)x / gridSize);
+			planeVertices.push_back((float)y / gridSize);
+
+			// Normal (facing up)
+			planeVertices.push_back(0.0f);
+			planeVertices.push_back(1.0f);
+			planeVertices.push_back(0.0f);
 		}
 	}
 
@@ -173,62 +185,10 @@ void CreateObjects() {
 
 	//Tree
 
-	float treeVertices[] = {
-		// Position           // Normal
+	treeModel = Model();
+	std::string treeModelPath = "src/models/Tree.obj";
 
-		// Bottom face
-		0, 0, 0,              0, 1, 0,
-		1, 0, 0,              0, 1, 0,
-		1, 0, 1,              0, 1, 0,
-		0, 0, 1,              0, 1, 0,
-
-		// Top face
-		0, 2, 0,              0, -1, 0,
-		1, 2, 0,              0, -1, 0,
-		1, 2, 1,              0, -1, 0,
-		0, 2, 1,              0, -1, 0,
-
-		// Front face
-		0, 0, 1,              0, 0, -1,
-		1, 0, 1,              0, 0, -1,
-		1, 2, 1,              0, 0, -1,
-		0, 2, 1,              0, 0, -1,
-
-		// Back face
-		0, 0, 0,              0, 0, 1,
-		1, 0, 0,              0, 0, 1,
-		1, 2, 0,              0, 0, 1,
-		0, 2, 0,              0, 0, 1,
-
-		// Left face
-		0, 0, 0,              1, 0, 0,
-		0, 0, 1,              1, 0, 0,
-		0, 2, 1,              1, 0, 0,
-		0, 2, 0,              1, 0, 0,
-
-		// Right face
-		1, 0, 0,              -1, 0, 0,
-		1, 0, 1,              -1, 0, 0,
-		1, 2, 1,              -1, 0, 0,
-		1, 2, 0,              -1, 0, 0,
-	};
-
-	unsigned int treeIndices[] = {
-		// Bottom      (vertices  0–3)
-		0, 1, 2,   2, 3, 0,
-		// Top         (vertices  4–7)
-		4, 5, 6,   6, 7, 4,
-		// Front       (vertices  8–11)
-		8, 9,10,  10,11, 8,
-		// Back        (vertices 12–15)
-	   12,13,14,  14,15,12,
-	   // Left        (vertices 16–19)
-	  16,17,18,  18,19,16,
-	  // Right       (vertices 20–23)
-	 20,21,22,  22,23,20
-	};
-
-	treeMesh.CompileMesh(treeVertices, treeIndices, 36);
+	treeModel.LoadModel(treeModelPath);
 }
 
 void CreateShaders() {
@@ -260,10 +220,12 @@ void SetTransformations() {
 }
 
 void SetTreeTransformations() {
+	treePos = glm::vec3(0.0f, 1.0f, 2.0f);
+
 	model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 2.0f)); // Move tree on plane
-	model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
+	//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(1.005f, 1.005f, 1.005f));
 
 	glUniformMatrix4fv(treeShader.GetModelLoc(), 1, GL_FALSE, glm::value_ptr(model));
 	glUniformMatrix4fv(treeShader.GetViewLoc(), 1, GL_FALSE, glm::value_ptr(view));
@@ -317,9 +279,9 @@ void RenderScene() {
 	glUniform3f(planeShader.GetEyePosLoc(), cameraPos.x, cameraPos.y, cameraPos.z);
 
 	//Perlin Texture
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, perlinTex);
-	glUniform1i(glGetUniformLocation(planeShader.GetShaderID(), "perlinNoise"), 0);
+	glUniform1i(glGetUniformLocation(planeShader.GetShaderID(), "perlinNoise"), 1);
 	//Transform
 	SetTransformations();
 	//Lightning
@@ -333,6 +295,7 @@ void RenderScene() {
 	//Tree
 	treeShader.UseShader();
 
+	glUniform1i(glGetUniformLocation(treeShader.GetShaderID(), "diffuseMap"), 0);
 	//Get eye position every frame
 	glUniform3f(treeShader.GetEyePosLoc(), cameraPos.x, cameraPos.y, cameraPos.z);
 
@@ -344,7 +307,9 @@ void RenderScene() {
 	treeShader.SetSpotLight(spotLight, spotLightCount);
 	treeShader.SetMaterial(material);
 
-	treeMesh.RenderMesh();
+	glActiveTexture(GL_TEXTURE0);
+
+	treeModel.RenderModel();
 }
 //Will be set per frame
 void RenderPass() {

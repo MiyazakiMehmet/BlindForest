@@ -17,9 +17,26 @@ Texture::Texture(const char* texPath) {
 	nrChannels = 0;
 }
 
+// Loads texture from file (returning bool for model loading instead of void) 
+bool Texture::LoadTexture() {
+	stbi_set_flip_vertically_on_load(true);
+	textureData = stbi_load(texturePath, &width, &height, &nrChannels, 0);
+
+	if (!textureData) {
+		std::cout << "Failed to find: " << texturePath << std::endl;
+
+		return false;
+	}
+
+	CompileTexture();
+
+	return true;
+}
+
 void Texture::CompileTexture()
 {
 	glGenTextures(1, &textureID);
+
 	glBindTexture(GL_TEXTURE_2D, textureID);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -27,7 +44,6 @@ void Texture::CompileTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	textureData = stbi_load(texturePath, &width, &height, &nrChannels, 0);
 	if (!textureData) {
 		std::cout << "Failed to load texture" << std::endl;
 		stbi_image_free(textureData);
@@ -42,10 +58,19 @@ void Texture::CompileTexture()
 	glBindTexture(GL_TEXTURE_2D, 0); //Unbind
 }
 
-void Texture::UseShader()
+void Texture::UseTexture()
 {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
 }
 
 Texture::~Texture()
 {
+	glDeleteTextures(1, &textureID);
+	textureID = 0;
+	width = 0;
+	height = 0;
+	nrChannels = 0;
+	texturePath = "";
 }

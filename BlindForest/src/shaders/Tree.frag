@@ -5,6 +5,8 @@ const int MAX_SPOT_LIGHT = 3;
 
 in vec3 fragPos;
 in vec3 fragNormal;
+in vec2 texCoords;
+
 out vec4 fragColor;
 
 struct Light {
@@ -36,6 +38,8 @@ struct Material{
     float specularIntensity;
     float shininess;
 };
+
+uniform sampler2D diffuseMap;
 
 uniform DirectionalLight directionalLight;
 
@@ -127,12 +131,12 @@ vec3 CalcSpotLights(){
 
 void main() {
     
-    vec3 treeColor = vec3(0.0, 0.6, 0.0); // green
+    vec3 texColor = texture(diffuseMap, texCoords).rgb;    
     vec3 finalColor = CalcDirectionalLight();
     finalColor += CalcPointLights();
     finalColor += CalcSpotLights();
-    finalColor *= treeColor;
+    finalColor *= texColor;
 
 
-    fragColor = vec4(finalColor, 1.0);
+    fragColor = vec4(texture(diffuseMap, texCoords).rgb, 1.0);
 }
