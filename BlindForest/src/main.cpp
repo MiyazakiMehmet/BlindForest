@@ -13,11 +13,12 @@
 #include "PointLight.h"
 #include "SpotLight.h"
 #include "Material.h"
+#include "Model.h"
 
 #include <iostream>
 #include <vector>
 
-int WIDTH = 800, HEIGHT = 1000;
+int WIDTH = 1000, HEIGHT = 1200;
 
 Window mainWindow;
 Mesh planeMesh;
@@ -288,12 +289,12 @@ void LightningSetup() {
 	glm::vec3 spotLightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 	spotLightPosition = cameraPos;
 	float spotLightAmbientIntensity = 0.6f;
-	float spotLightDiffuseIntensity = 4.9f;
+	float spotLightDiffuseIntensity = 1.9f;
 	constant = 1.3f;
 	linear = 0.1f;
 	exponent = 1.0f;
 	glm::vec3 spotLightDirection = cameraFront;
-	float edge = 10.0f;
+	float edge = 20.0f;
 	spotLightCount++;
 
 	directionalLight = DirectionalLight(lightColor, ambientIntensity, diffuseIntensity, lightDirection);

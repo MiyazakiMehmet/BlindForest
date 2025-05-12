@@ -2,8 +2,8 @@
 
 Window::Window()
 {
-	screenWidth = 600;
-	screenHeight = 800;
+	screenWidth = 800;
+	screenHeight = 1000;
 	currentFrame = 0.0f;
 	lastFrame = 0.0f;
 	deltaTime = 0.0f;
