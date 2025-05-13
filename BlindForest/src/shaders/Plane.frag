@@ -129,7 +129,7 @@ vec3 CalcSpotLights(){
 
 float fbm(vec2 p) {
     float total = 0.0;
-    float amplitude = 0.3;
+    float amplitude = 0.2;
     float frequency = 1.0;
 
     for (int i = 0; i < 5; i++) {
@@ -146,7 +146,7 @@ void main(){
 	//float n = texture(perlinNoise, texCoords).r;
     float n = fbm(texCoords);
 	
-    vec3 dirtColor = mix(vec3(0.8, 0.03, 0.03), vec3(0.0, 0.66, 0.0),n);
+    vec3 dirtColor = mix(vec3(0.4, 0.03, 0.03), vec3(0.0, 0.66, 0.0),n);
 
     vec3 finalColor = CalcDirectionalLight();
     finalColor += CalcPointLights();

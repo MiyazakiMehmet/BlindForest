@@ -138,5 +138,5 @@ void main() {
     finalColor *= texColor;
 
 
-    fragColor = vec4(texture(diffuseMap, texCoords).rgb, 1.0);
+    fragColor = vec4(finalColor, 1.0);
 }
