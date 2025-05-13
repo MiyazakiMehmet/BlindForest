@@ -56,7 +56,8 @@ float yaw = -90.0f;
 float pitch = 0;
 
 unsigned int perlinTex;
-int texSize;
+int texSize = 512;
+std::vector<glm::vec3> treePositions;
 
 glm::vec3 lightColor;
 float ambientIntensity;
@@ -74,9 +75,8 @@ int spotLightCount = 0;
 
 glm::vec3 treePos;
 
-void PerlinTexture() {
+unsigned char* PerlinTexture(int& texSizeOut) {
 	
-	texSize = 512;
 	
 	unsigned char* data = new unsigned char[texSize * texSize];
 
@@ -99,7 +99,38 @@ void PerlinTexture() {
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, texSize, texSize, 0, GL_RED, GL_UNSIGNED_BYTE, data);
-	delete[] data;
+	return data;
+}
+
+void TreeScatteringNoise() {
+
+	unsigned char* noiseData = PerlinTexture(texSize);
+
+	for (int x = 0; x < texSize; x += 4) {
+		for (int y = 0; y < texSize; y += 4) {
+			float noiseValue = (float)noiseData[y * texSize + x] / 255.0f;
+
+			if (noiseValue > 0.6f) {
+				float worldX = ((float)x / texSize - 0.5f) * 100.0f;
+				float worldZ = ((float)y / texSize - 0.5f) * 100.0f;
+				treePositions.push_back(glm::vec3(worldX, 0.0f, worldZ));
+			}
+		}
+	}
+
+	// Shuffle
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(treePositions.begin(), treePositions.end(), g);
+
+	// Trim to 100
+	if (treePositions.size() > 200){
+		treePositions.resize(200);
+	}
+
+	std::cout << "Tree count: " << treePositions.size() << std::endl;
+
+	delete[] noiseData; // Safe to delete after extracting positions
 }
 
 void HandleMouse(GLFWwindow* window, double xPos, double yPos) {
@@ -219,19 +250,6 @@ void SetTransformations() {
 
 }
 
-void SetTreeTransformations() {
-	treePos = glm::vec3(0.0f, 1.0f, 2.0f);
-
-	model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(2.0f, 0.0f, 2.0f)); // Move tree on plane
-	//model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::scale(model, glm::vec3(1.005f, 1.005f, 1.005f));
-
-	glUniformMatrix4fv(treeShader.GetModelLoc(), 1, GL_FALSE, glm::value_ptr(model));
-	glUniformMatrix4fv(treeShader.GetViewLoc(), 1, GL_FALSE, glm::value_ptr(view));
-	glUniformMatrix4fv(treeShader.GetProjectionLoc(), 1, GL_FALSE, glm::value_ptr(projection));
-}
-
 void LightningSetup() {
 	//Directional Light
 	lightColor = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
@@ -285,8 +303,8 @@ void RenderScene() {
 	//Transform
 	SetTransformations();
 	//Lightning
-	planeShader.SetDirectionalLight(directionalLight);
-	planeShader.SetPointLight(pointLight, pointLightCount);
+	//planeShader.SetDirectionalLight(directionalLight);
+	//planeShader.SetPointLight(pointLight, pointLightCount);
 	planeShader.SetSpotLight(spotLight, spotLightCount);
 	planeShader.SetMaterial(material);
 	//Draw
@@ -299,21 +317,28 @@ void RenderScene() {
 	//Get eye position every frame
 	glUniform3f(treeShader.GetEyePosLoc(), cameraPos.x, cameraPos.y, cameraPos.z);
 
-	//Transform
-	SetTreeTransformations();
 	//Lightning
-	treeShader.SetDirectionalLight(directionalLight);
-	treeShader.SetPointLight(pointLight, pointLightCount);
+	//treeShader.SetDirectionalLight(directionalLight);
+	//treeShader.SetPointLight(pointLight, pointLightCount);
 	treeShader.SetSpotLight(spotLight, spotLightCount);
 	treeShader.SetMaterial(material);
 
 	glActiveTexture(GL_TEXTURE0);
 
-	treeModel.RenderModel();
+	for (const glm::vec3& pos : treePositions) {
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, pos);
+		//model = glm::scale(model, glm::vec3(1.0f)); // optional scale to shrink trees
+		glUniformMatrix4fv(treeShader.GetModelLoc(), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(treeShader.GetViewLoc(), 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(treeShader.GetProjectionLoc(), 1, GL_FALSE, glm::value_ptr(projection));
+
+		treeModel.RenderModel();
+	}
 }
 //Will be set per frame
 void RenderPass() {
-	glClearColor(0.4f, 0.6f, 1.0f, 1.0f);  
+	glClearColor(0.2f, 0.2f, 0.2f, 1.0f);  
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glEnable(GL_DEPTH_TEST);
@@ -335,7 +360,9 @@ int main() {
 
 	CreateShaders();
 
-	PerlinTexture();
+	PerlinTexture(texSize);
+
+	TreeScatteringNoise();
 
 	LightningSetup();
 

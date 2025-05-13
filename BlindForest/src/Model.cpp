@@ -93,6 +93,10 @@ void Model::LoadMesh(aiMesh* mesh, const aiScene* scene)
 		}
 	}
 
+	if (!mesh->HasNormals()) {
+		std::cout << "[Warning] Mesh " << mesh->mName.C_Str() << " has NO normals!" << std::endl;
+	}
+
 	Mesh* newMesh = new Mesh();
 	newMesh->CompileMesh(vertices, indices);
 	meshList.push_back(newMesh);
